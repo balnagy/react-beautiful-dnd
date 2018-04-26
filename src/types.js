@@ -211,6 +211,10 @@ export type Displacement = {|
   shouldAnimate: boolean,
 |}
 
+export type HoveredOver = {|
+  draggableId: DraggableId
+|}
+
 export type DragMovement = {|
   // The draggables that need to move in response to a drag.
   // Ordered by closest draggable to the *current* location of the dragging item
@@ -223,6 +227,7 @@ export type DragMovement = {|
 
 export type DragImpact = {|
   movement: DragMovement,
+  hoveredOver: HoveredOver,
   // the direction of the Droppable you are over
   direction: ?Direction,
   destination: ?DraggableLocation,

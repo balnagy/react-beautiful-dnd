@@ -75,6 +75,21 @@ export const makeSelector = (): Selector => {
     }),
   );
 
+  const getHoveredProps = memoizeOne(
+      (offset: Position, shouldAnimateDisplacement: boolean): MapProps => ({
+        isDropAnimating: false,
+        isDragging: false,
+        isHovered: true,
+        offset,
+        shouldAnimateDisplacement,
+        // not relevant
+        shouldAnimateDragMovement: false,
+        dimension: null,
+        direction: null,
+        draggingOver: null,
+      }),
+  );
+
   const getDraggingProps = memoizeOne((
     offset: Position,
     shouldAnimateDragMovement: boolean,
@@ -204,7 +219,12 @@ export const makeSelector = (): Selector => {
         return null;
       }
 
-      return getOutOfTheWayMovement(ownProps.draggableId, state.drag.impact.movement);
+      if(state.drag.impact.hoveredOver && state.drag.impact.hoveredOver.draggableId === ownProps.draggableId) {
+        return getHoveredProps();
+      } else {
+        return getOutOfTheWayMovement(ownProps.draggableId, state.drag.impact.movement);
+      }
+
     }
 
     // state.phase === 'DROP_ANIMATING'

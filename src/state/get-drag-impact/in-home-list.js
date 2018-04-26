@@ -9,6 +9,7 @@ import type {
   Displacement,
   Area,
   Viewport,
+  HoveredOver,
 } from '../../types';
 import { patch } from '../position';
 import getDisplacement from '../get-displacement';
@@ -25,6 +26,8 @@ type Args = {|
   previousImpact: DragImpact,
   viewport: Viewport,
 |}
+
+const getHoverThreshold = (area) => (area.bottom - area.top) / 2;
 
 export default ({
   pageCenter,
@@ -56,14 +59,15 @@ export default ({
 
       const area: Area = child.page.borderBox;
 
+      const hoverThreshold = getHoverThreshold(area);
+
       if (isBeyondStartPosition) {
         // 1. item needs to start ahead of the moving item
         // 2. the dragging item has moved over it
         if (area.center[axis.line] < originalCenter[axis.line]) {
           return false;
         }
-
-        return currentCenter[axis.line] > area[axis.start];
+        return currentCenter[axis.line] > area[axis.start] + hoverThreshold;
       }
       // moving backwards
       // 1. item needs to start behind the moving item
@@ -72,7 +76,7 @@ export default ({
         return false;
       }
 
-      return currentCenter[axis.line] < area[axis.end];
+      return currentCenter[axis.line] < area[axis.end] - hoverThreshold;
     })
     .map((dimension: DraggableDimension): Displacement => getDisplacement({
       draggable: dimension,
@@ -97,6 +101,36 @@ export default ({
     return startIndex - length;
   })();
 
+  const hoveredDraggable: DraggableDimension = insideHome
+      .find((child: DraggableDimension): boolean => {
+        if (child === draggable) {
+          return false;
+        }
+
+        const area: Area = child.page.borderBox;
+
+        const hoverThreshold = getHoverThreshold(area);
+
+        if (isBeyondStartPosition) {
+          // 1. item needs to start ahead of the moving item
+          // 2. the dragging item has moved over it
+          if (area.center[axis.line] < originalCenter[axis.line]) {
+            return false;
+          }
+          return area[axis.start] + hoverThreshold > currentCenter[axis.line] && currentCenter[axis.line] > area[axis.start];
+        }
+        // moving backwards
+        // 1. item needs to start behind the moving item
+        // 2. the dragging item has moved over it
+        if (originalCenter[axis.line] < area.center[axis.line] ) {
+          return false;
+        }
+
+        return area[axis.end] - hoverThreshold < currentCenter[axis.line] < area[axis.end];
+      });
+
+  const hoveredOver : HoveredOver = hoveredDraggable && {draggableId: hoveredDraggable.descriptor.id };
+
   const movement: DragMovement = {
     amount,
     displaced: ordered,
@@ -105,6 +139,7 @@ export default ({
 
   const impact: DragImpact = {
     movement,
+    hoveredOver,
     direction: axis.direction,
     destination: {
       droppableId: home.descriptor.id,

@@ -81,7 +81,14 @@ export type NotDraggingStyle = {|
   transition: null | 'none',
 |}
 
-export type DraggableStyle = DraggingStyle | NotDraggingStyle;
+export type HoveredStyle = {|
+  transform: ?string,
+  // null: use the global animation style
+  // none: skip animation (used in certain displacement situations)
+  transition: null | 'none',
+|}
+
+export type DraggableStyle = DraggingStyle | NotDraggingStyle | HoveredStyle;
 
 export type ZIndexOptions = {|
   dragging: number,
@@ -131,6 +138,7 @@ export type MapProps = {|
   // we need to know if that movement should be animated
   shouldAnimateDisplacement: boolean,
   isDropAnimating: boolean,
+  isHovered: boolean,
   offset: Position,
   // only provided when dragging
   // can be null if not over a droppable

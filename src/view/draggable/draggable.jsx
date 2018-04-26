@@ -225,10 +225,17 @@ export default class Draggable extends Component<Props> {
     }
   )
 
+  getHoveredStyle = () => {
+    return {
+      boxShadow: '0 0 3px 2px #0065FF',
+    };
+  }
+
   getProvided = memoizeOne(
     (
       isDragging: boolean,
       isDropAnimating: boolean,
+      isHovered: boolean,
       shouldAnimateDisplacement: boolean,
       dimension: ?DraggableDimension,
       dragHandleProps: ?DragHandleProps,
@@ -238,7 +245,11 @@ export default class Draggable extends Component<Props> {
 
       const draggableStyle: DraggableStyle = (() => {
         if (!useDraggingStyle) {
-          return this.getNotDraggingStyle(movementStyle, shouldAnimateDisplacement);
+          if(!isHovered) {
+            return this.getNotDraggingStyle(movementStyle, shouldAnimateDisplacement);
+          } else {
+            return this.getHoveredStyle();
+          }
         }
 
         invariant(dimension, 'draggable dimension required for dragging');
@@ -288,6 +299,7 @@ export default class Draggable extends Component<Props> {
     const {
       isDragging,
       isDropAnimating,
+      isHovered,
       dimension,
       draggingOver,
       shouldAnimateDisplacement,
@@ -298,6 +310,7 @@ export default class Draggable extends Component<Props> {
       this.getProvided(
         isDragging,
         isDropAnimating,
+        isHovered,
         shouldAnimateDisplacement,
         dimension,
         dragHandleProps,
