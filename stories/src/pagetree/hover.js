@@ -33,6 +33,9 @@ const getItems = (count: number): Item[] =>
       {id: '2', content: 'Sightings'},
       {id: '3', content: 'Gear'},
       {id: '4', content: 'History'},
+      {id: '5', content: 'Balazs'},
+      {id: '6', content: 'Edith'},
+      {id: '7', content: 'David'},
     ];
 
 type State = {

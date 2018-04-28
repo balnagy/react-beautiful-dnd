@@ -245,11 +245,11 @@ export default class Draggable extends Component<Props> {
 
       const draggableStyle: DraggableStyle = (() => {
         if (!useDraggingStyle) {
-          if(!isHovered) {
-            return this.getNotDraggingStyle(movementStyle, shouldAnimateDisplacement);
-          } else {
-            return this.getHoveredStyle();
-          }
+          const style = {
+              ...isHovered ? this.getHoveredStyle(): {},
+              ...this.getNotDraggingStyle(movementStyle, shouldAnimateDisplacement),
+          };
+          return style;
         }
 
         invariant(dimension, 'draggable dimension required for dragging');

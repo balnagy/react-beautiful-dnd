@@ -43,6 +43,7 @@ const origin: Position = { x: 0, y: 0 };
 const defaultMapProps: MapProps = {
   isDropAnimating: false,
   isDragging: false,
+  isHovered: false,
   offset: origin,
   shouldAnimateDragMovement: false,
   // This is set to true by default so that as soon as Draggable
@@ -73,21 +74,6 @@ export const makeSelector = (): Selector => {
       direction: null,
       draggingOver: null,
     }),
-  );
-
-  const getHoveredProps = memoizeOne(
-      (offset: Position, shouldAnimateDisplacement: boolean): MapProps => ({
-        isDropAnimating: false,
-        isDragging: false,
-        isHovered: true,
-        offset,
-        shouldAnimateDisplacement,
-        // not relevant
-        shouldAnimateDragMovement: false,
-        dimension: null,
-        direction: null,
-        draggingOver: null,
-      }),
   );
 
   const getDraggingProps = memoizeOne((
@@ -219,12 +205,20 @@ export const makeSelector = (): Selector => {
         return null;
       }
 
+      let mapProps : MapProps = getOutOfTheWayMovement(ownProps.draggableId, state.drag.impact.movement);
+
       if(state.drag.impact.hoveredOver && state.drag.impact.hoveredOver.draggableId === ownProps.draggableId) {
-        return getHoveredProps();
-      } else {
-        return getOutOfTheWayMovement(ownProps.draggableId, state.drag.impact.movement);
+        if(mapProps) {
+          mapProps = {
+            ...mapProps,
+            isHovered: true
+          };
+        } else {
+          mapProps = {isHovered: true};
+        }
       }
 
+      return mapProps;
     }
 
     // state.phase === 'DROP_ANIMATING'

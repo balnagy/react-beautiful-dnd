@@ -50,6 +50,8 @@ export default ({
 
   const amount: Position = patch(axis.line, draggable.client.marginBox[axis.size]);
 
+  const isDisplaced = (id) => previousImpact.movement.displaced.find((d: Displacement) => d.draggableId === id);
+
   const displaced: Displacement[] = insideHome
     .filter((child: DraggableDimension): boolean => {
       // do not want to move the item that is dragging
@@ -67,7 +69,11 @@ export default ({
         if (area.center[axis.line] < originalCenter[axis.line]) {
           return false;
         }
-        return currentCenter[axis.line] > area[axis.start] + hoverThreshold;
+        if (isDisplaced(child.descriptor.id)) {
+          return currentCenter[axis.line] > area[axis.start] - hoverThreshold;
+        } else {
+          return currentCenter[axis.line] > area[axis.start] + hoverThreshold;
+        }
       }
       // moving backwards
       // 1. item needs to start behind the moving item
@@ -75,8 +81,11 @@ export default ({
       if (originalCenter[axis.line] < area.center[axis.line]) {
         return false;
       }
-
-      return currentCenter[axis.line] < area[axis.end] - hoverThreshold;
+      if (isDisplaced(child.descriptor.id)) {
+        return currentCenter[axis.line] < area[axis.end] + hoverThreshold;
+      } else {
+        return currentCenter[axis.line] < area[axis.end] - hoverThreshold;
+      }
     })
     .map((dimension: DraggableDimension): Displacement => getDisplacement({
       draggable: dimension,
@@ -117,7 +126,11 @@ export default ({
           if (area.center[axis.line] < originalCenter[axis.line]) {
             return false;
           }
-          return area[axis.start] + hoverThreshold > currentCenter[axis.line] && currentCenter[axis.line] > area[axis.start];
+          if (isDisplaced(child.descriptor.id)) {
+            return area[axis.start] > currentCenter[axis.line] && currentCenter[axis.line] > area[axis.start] - hoverThreshold;
+          } else {
+            return area[axis.start] + hoverThreshold > currentCenter[axis.line] && currentCenter[axis.line] > area[axis.start];
+          }
         }
         // moving backwards
         // 1. item needs to start behind the moving item
@@ -125,8 +138,11 @@ export default ({
         if (originalCenter[axis.line] < area.center[axis.line] ) {
           return false;
         }
-
-        return area[axis.end] - hoverThreshold < currentCenter[axis.line] < area[axis.end];
+        if (isDisplaced(child.descriptor.id)) {
+          return area[axis.end] < currentCenter[axis.line] && currentCenter[axis.line] < area[axis.end] + hoverThreshold;
+        } else {
+          return area[axis.end] - hoverThreshold < currentCenter[axis.line] && currentCenter[axis.line] < area[axis.end];
+        }
       });
 
   const hoveredOver : HoveredOver = hoveredDraggable && {draggableId: hoveredDraggable.descriptor.id };
