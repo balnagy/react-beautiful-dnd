@@ -104,6 +104,7 @@ export type DraggableProps = {|
 |}
 
 export type Provided = {|
+  isHovered: boolean,
   draggableProps: DraggableProps,
   // will be null if the draggable is disabled
   dragHandleProps: ?DragHandleProps,

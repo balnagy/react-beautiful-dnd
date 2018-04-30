@@ -225,12 +225,6 @@ export default class Draggable extends Component<Props> {
     }
   )
 
-  getHoveredStyle = () => {
-    return {
-      boxShadow: '0 0 3px 2px #0065FF',
-    };
-  }
-
   getProvided = memoizeOne(
     (
       isDragging: boolean,
@@ -246,7 +240,6 @@ export default class Draggable extends Component<Props> {
       const draggableStyle: DraggableStyle = (() => {
         if (!useDraggingStyle) {
           const style = {
-              ...isHovered ? this.getHoveredStyle(): {},
               ...this.getNotDraggingStyle(movementStyle, shouldAnimateDisplacement),
           };
           return style;
@@ -260,6 +253,7 @@ export default class Draggable extends Component<Props> {
       })();
 
       const provided: Provided = {
+        isHovered,
         innerRef: this.setRef,
         draggableProps: {
           'data-react-beautiful-dnd-draggable': this.styleContext,

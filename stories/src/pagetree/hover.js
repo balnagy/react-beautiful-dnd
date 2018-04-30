@@ -101,6 +101,7 @@ export default class NavigationWithDragAndDrop extends Component<void, State> {
                     onClick={() => console.log(`clicking on ${item.content}`)}
                     text={item.content}
                     dnd={provided}
+                    isSelected={provided.isHovered}
                 />
                 {provided.placeholder}
               </div>
