@@ -2,6 +2,8 @@
 
 export type Tree = Item;
 
+export type FlattenTree = FlattenItem[];
+
 export type Item = {|
   id: string,
   content: string,
