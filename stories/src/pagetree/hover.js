@@ -128,7 +128,7 @@ export default class NavigationWithDragAndDrop extends Component<void, State> {
     return items.map((item: FlattenItem, index) => (
         <Draggable draggableId={item.id} index={index} key={item.id}>
           {(provided, snapshot) => (
-              <div style={{paddingLeft: item.path.length * 35}}>
+              <div style={{paddingLeft: (item.path.length - 1) * 35}}>
                 <AkNavigationItem
                     isDragging={snapshot.isDragging}
                     onClick={() => console.log(`clicking on ${item.content}`)}
