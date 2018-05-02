@@ -5,13 +5,23 @@ import styled, { injectGlobal } from 'styled-components';
 import { Draggable, Droppable, DragDropContext } from '../../../src';
 
 import Navigation, { AkNavigationItem } from '@atlaskit/navigation';
-import type {FlattenItem} from './types';
+import type {FlattenItem, Tree} from './types';
 import {childIndex, flattenTree, getItem, isSameLevel, parentPath} from './tree-utils';
 import AkIconChevronDown from "@atlaskit/icon/glyph/chevron-down";
-import dot from './hover.css';
+import {dot} from './hover.css';
+import {tree} from './getTree';
 
 const Container = styled.div`
   display: flex;
+`;
+
+const Dot = styled.span`
+    display: flex;
+    width: 24px;
+    height: 32px;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 32px;
 `;
 
 const reorder = (list: any[], startIndex: number, endIndex: number) => {
@@ -27,25 +37,7 @@ const reorder = (list: any[], startIndex: number, endIndex: number) => {
 const isDraggingClassName = 'isdragging';
 
 const getTree = (): (Tree) => {
-  return {
-    id: '0',
-    content: '__root',
-    children: [
-      {
-        id: '1', content: 'About', children: [
-        {id: '8', content: 'What?'},
-        {id: '9', content: 'How?'},
-        {id: '10', content: 'When?'}
-      ]
-      },
-      {id: '2', content: 'Sightings'},
-      {id: '3', content: 'Gear'},
-      {id: '4', content: 'History'},
-      {id: '5', content: 'Balazs'},
-      {id: '6', content: 'Edith'},
-      {id: '7', content: 'David'},
-    ]
-  }
+  return tree;
 };
 
 type State = {
@@ -135,7 +127,7 @@ export default class NavigationWithDragAndDrop extends Component<void, State> {
                     text={item.content}
                     dnd={provided}
                     isSelected={provided.isHovered}
-                    icon={item.children ? <AkIconChevronDown label="" size='medium' /> : <span className={dot}>&bull;</span>}
+                    icon={item.children ? <AkIconChevronDown label="" size='medium' /> : <Dot>&bull;</Dot>}
                 />
                 {provided.placeholder}
               </div>
