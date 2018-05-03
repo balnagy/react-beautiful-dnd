@@ -57,6 +57,7 @@ export const moveItemOnTree: Tree = (tree: Tree, sourcePath: Path, destinationPa
   const destinationParent = getItem(newTree, parentPath(destinationPath));
   sourceParent.children.splice(childIndex(sourcePath), 1);
   // We need extra offset if there is no shift in the destination array, ugly solution
+  destinationParent.children = destinationParent.children || [];
   destinationParent.children.splice(childIndex(destinationPath), 0, itemToMove);
   return newTree;
 };
