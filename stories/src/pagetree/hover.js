@@ -76,7 +76,7 @@ export default class NavigationWithDragAndDrop extends Component<void, State> {
 
     const flattenItems: FlattenItem[] = flattenTree(this.state.tree);
     const sourcePath = getSourcePath(flattenItems, source.index);
-    const destinationPath = getDestinationPath(flattenItems, destination.index, destination.index > source.index);
+    const destinationPath = getDestinationPath(flattenItems, destination.index, source.index);
     const tree = moveItemOnTree(this.state.tree, sourcePath, destinationPath);
 
     this.setState({
