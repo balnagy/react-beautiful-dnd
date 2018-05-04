@@ -12,6 +12,10 @@ import {
 import AkIconChevronDown from "@atlaskit/icon/glyph/chevron-down";
 import {dot} from './hover.css';
 import {tree} from './getTree';
+import ReactDOM from 'react-dom';
+import { getBox } from 'css-box-model';
+
+const LEFT_PADDING = 35;
 
 const Container = styled.div`
   display: flex;
@@ -41,6 +45,14 @@ export default class NavigationWithDragAndDrop extends Component<void, State> {
     tree: getTree(),
   };
 
+  constructor() {
+    super();
+    this.itemRefs = {};
+    this.containerRef = React.createRef();
+    this.draggedId = null;
+    this.lastDraggedLevel = 0;
+  }
+
   componentDidMount() {
     // eslint-disable-next-line no-unused-expressions
     injectGlobal`
@@ -51,7 +63,8 @@ export default class NavigationWithDragAndDrop extends Component<void, State> {
     `;
   }
 
-  onDragStart = () => {
+  onDragStart = (result: Object) => {
+    this.draggedId = result.draggableId;
     if (document.body) {
       document.body.classList.add(isDraggingClassName);
     }
@@ -66,67 +79,101 @@ export default class NavigationWithDragAndDrop extends Component<void, State> {
     const destination = result.destination;
 
     if (destination === null) {
+      this.draggedId = null;
       return;
     }
 
     if (source.droppableId !== destination.droppableId) {
       console.error('unsupported use case');
+      this.draggedId = null;
       return;
     }
 
+    console.log('Dropped level:', this.lastDraggedLevel);
     const flattenItems: FlattenItem[] = flattenTree(this.state.tree);
     const sourcePath = getSourcePath(flattenItems, source.index);
-    const destinationPath = getDestinationPath(flattenItems, destination.index, source.index);
+    const destinationPath = getDestinationPath(flattenItems, destination.index, source.index, this.lastDraggedLevel);
     const tree = moveItemOnTree(this.state.tree, sourcePath, destinationPath);
 
     this.setState({
       tree,
     });
+    this.draggedId = null;
   };
+
+  onDragUpdate = () => {
+    this.lastDraggedLevel = this.getDroppedLevel();
+    console.log(this.lastDraggedLevel);
+  };
+
+  pointerMove() {
+    if(this.draggedId) {
+      this.lastDraggedLevel = this.getDroppedLevel();
+      console.log(this.lastDraggedLevel);
+    }
+  }
+
+  getDroppedLevel() {
+    if(this.draggedId) {
+      const ref = this.itemRefs[this.draggedId];
+      let el = ReactDOM.findDOMNode(ref.current);
+      const mostLeft = getBox(this.containerRef.current).contentBox.left;
+      const currentLeft = getBox(el).borderBox.left;
+      return Math.floor((Math.max(currentLeft - mostLeft, 0) + LEFT_PADDING / 2) / LEFT_PADDING) + 1;
+    }
+  }
 
   renderContainerItems = () => {
     const items: FlattenItem[] = flattenTree(this.state.tree);
 
-    console.log(items);
-
-    return items.map((item: FlattenItem, index) => (
-        <Draggable draggableId={item.id} index={index} key={item.id}>
-          {(provided, snapshot) => (
-              <div style={{paddingLeft: (item.path.length - 1) * 35}}>
-                <AkNavigationItem
+    return items.map((item: FlattenItem, index) => {
+      this.itemRefs[item.id] = this.itemRefs[item.id] || React.createRef();
+      return (
+          <Draggable draggableId={item.id} index={index} key={item.id}>
+            {(provided, snapshot) => (
+                <div style={{paddingLeft: (item.path.length - 1) * LEFT_PADDING}}>
+                  <AkNavigationItem
                     isDragging={snapshot.isDragging}
                     onClick={() => console.log(`clicking on ${item.content}`)}
                     text={item.content}
                     dnd={provided}
                     isSelected={provided.isHovered}
-                    icon={item.children ? <AkIconChevronDown label="" size='medium' /> : <Dot>&bull;</Dot>}
-                />
-                {provided.placeholder}
-              </div>
-          )}
-        </Draggable>
-    ));
+                    icon={item.children && item.children.length > 0 ? <AkIconChevronDown label="" size='medium' /> : <Dot>&bull;</Dot>}
+                    ref={this.itemRefs[item.id]}
+                  />
+                  {provided.placeholder}
+                </div>
+            )}
+          </Draggable>
+      )
+    });
   };
 
   renderContainerContent = () => {
     const containerItems = this.renderContainerItems();
     return (
-        <DragDropContext
-            onDragStart={this.onDragStart}
-            onDragEnd={this.onDragEnd}
-        >
-          <Droppable droppableId="list">
-            {dropProvided => (
-                <div ref={dropProvided.innerRef}>{containerItems}</div>
-            )}
-          </Droppable>
-        </DragDropContext>
+        <div ref={this.containerRef}>
+          <DragDropContext
+              onDragStart={this.onDragStart}
+              onDragEnd={this.onDragEnd}
+              onDragUpdate={this.onDragUpdate}
+          >
+              <Droppable droppableId="list">
+                {dropProvided => (
+                    <div ref={dropProvided.innerRef}>{containerItems}</div>
+                )}
+              </Droppable>
+          </DragDropContext>
+        </div>
     );
   };
 
   render() {
     return (
-        <Container>
+        <Container
+            onMouseMove={(e) => this.pointerMove(e)}
+            onTouchMove={(e) => this.pointerMove(e)}
+        >
           <Navigation>{this.renderContainerContent()}</Navigation>
         </Container>
     );

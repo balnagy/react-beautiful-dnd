@@ -62,35 +62,38 @@ export const moveItemOnTree: Tree = (tree: Tree, sourcePath: Path, destinationPa
   return newTree;
 };
 
-const reorder = (list: any[], startIndex: number, endIndex: number) => {
-  // make a shallow copy so we do not modify the original array
-  const result: any[] = Array.from(list);
-
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-
-  return result;
-};
-
 const isBeginningOfTheList = (upperPath: Path, lowerPath: Path) => !upperPath || isParentOf(upperPath, lowerPath);
 
 export const getSourcePath = (flattenTree: FlattenTree, sourceIndex: number) => flattenTree[sourceIndex].path;
 
-export const getDestinationPath = (flattenTree: FlattenTree, destinationIndex: number, sourceIndex: number) => {
+export const getDestinationPath = (flattenTree: FlattenTree, destinationIndex: number, sourceIndex: number, droppedLevel: number) => {
   const down = destinationIndex > sourceIndex;
+  const samePlace = destinationIndex === sourceIndex;
   const sourcePath = getSourcePath(flattenTree, sourceIndex);
   const upperPath = down ? flattenTree[destinationIndex].path : flattenTree[destinationIndex - 1] && flattenTree[destinationIndex - 1].path;
-  const lowerPath = down ? flattenTree[destinationIndex + 1] && flattenTree[destinationIndex + 1].path : flattenTree[destinationIndex].path;
+  const lowerPath = down || samePlace ? flattenTree[destinationIndex + 1] && flattenTree[destinationIndex + 1].path : flattenTree[destinationIndex].path;
 
   console.log('Upperpath: ', upperPath);
   console.log('Lowerpath: ', lowerPath);
 
+  const lowestLevel = lowerPath ? lowerPath.length : 1;
+  const highestLevel = upperPath.length + 1;
+  const finalLevel = Math.min(Math.max(droppedLevel, lowestLevel), highestLevel);
+
+  if(samePlace && finalLevel === sourcePath.length) {
+    return sourcePath;
+  }
+
   // Inserting between 2 items on the same level
   if (hasSameParent(upperPath, lowerPath)) {
-    if (down && !hasSameParent(upperPath, sourcePath)) {
-      return lowerPath;
-    } else {
-      return flattenTree[destinationIndex].path;
+    if(finalLevel === upperPath.length) {
+      if ((samePlace || down) && !hasSameParent(upperPath, sourcePath)) {
+        return lowerPath;
+      } else {
+        return flattenTree[destinationIndex].path;
+      }
+    } else if(finalLevel > upperPath.length) {
+      return [...upperPath, 0];
     }
   }
 
@@ -99,11 +102,14 @@ export const getDestinationPath = (flattenTree: FlattenTree, destinationIndex: n
     return lowerPath;
   }
 
-  // End of list ambiguous case
-  // Priority order of disambiguation
-  // 1. Stay on the same level
+  // End of list
 
-  if (!lowerPath || upperPath.length === sourcePath.length) {
+  if(finalLevel > upperPath.length) {
+    // New child of the upper item
+    return [...upperPath, 0];
+  }
+
+  if(finalLevel === upperPath.length) {
     // Insert to the upper list
     let newPath = [...upperPath];
     if (!hasSameParent(upperPath, sourcePath)) {
@@ -112,9 +118,11 @@ export const getDestinationPath = (flattenTree: FlattenTree, destinationIndex: n
     return newPath;
   }
 
-  let newPath = [...lowerPath];
-  if (down) {
-    newPath[newPath.length - 1] -= 1;
+  const afterItem = upperPath.slice(0, finalLevel);
+  let newPath = [...afterItem];
+  if (!hasSameParent(afterItem, sourcePath)) {
+    newPath[newPath.length - 1] += 1;
   }
   return newPath;
+
 };
